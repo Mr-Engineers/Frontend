@@ -29,17 +29,51 @@ const mockProfileData: ProfileFormData = {
 }
 
 export class ProfileService {
-  // In a real app, this would be an API call to fetch the user's profile data
+  private static API_BASE_URL = 'http://localhost:5000'
+
   static async getProfileData(): Promise<ProfileFormData> {
-    // Simulate API delay
-    await new Promise(resolve => setTimeout(resolve, 500))
-    return mockProfileData
+    try {
+      const response = await fetch(`${this.API_BASE_URL}/api/user`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        credentials: 'include'
+      })
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`)
+      }
+
+      const data = await response.json()
+      console.log(data)
+      return mockProfileData as ProfileFormData
+    } catch (error) {
+      console.error('Error fetching profile data:', error)
+      throw error
+    }
   }
 
-  // In a real app, this would be an API call to update the user's profile data
   static async updateProfileData(data: ProfileFormData): Promise<ProfileFormData> {
-    // Simulate API delay
-    await new Promise(resolve => setTimeout(resolve, 2500))
-    return data
+    try {
+      const response = await fetch(`${this.API_BASE_URL}/api/user`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        credentials: 'include',
+        body: JSON.stringify(data)
+      })
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`)
+      }
+
+      const updatedData = await response.json()
+      return updatedData as ProfileFormData
+    } catch (error) {
+      console.error('Error updating profile data:', error)
+      throw error
+    }
   }
 } 
