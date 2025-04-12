@@ -20,6 +20,10 @@ RUN \
 
 # Rebuild the source code only when needed
 FROM base AS builder
+
+NEXT_PUBLIC_SUPABASE_URL="https://bxmqyoumevcinnzhommt.supabase.co"
+
+NEXT_PUBLIC_SUPABASE_ANON_KEY="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJ4bXF5b3VtZXZjaW5uemhvbW10Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDQxMjA4MDUsImV4cCI6MjA1OTY5NjgwNX0.ZSIke1eSkrvMWQjGibc6gBOF9CmJmuv0hr18NQRuZPo"
 WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
