@@ -1,35 +1,88 @@
 "use client"
 
-import type React from "react"
-
 import { useState } from "react"
+import { useRouter } from "next/navigation"
 import type { FormData } from "@/components/onboarding-flow"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { Separator } from "@/components/ui/separator"
 import { Checkbox } from "@/components/ui/checkbox"
 import Link from "next/link"
 import { ArrowRight } from "lucide-react"
+import { createClientComponentClient } from '@supabase/auth-helpers-nextjs'
 
 interface LoginStepProps {
   formData: FormData
   updateFormData: (data: Partial<FormData>) => void
   onNext: () => void
+  isSignIn: boolean
+  setIsSignIn: (value: boolean) => void
 }
 
-export function LoginStep({ formData, updateFormData, onNext }: LoginStepProps) {
-  const [isSignIn, setIsSignIn] = useState(false)
-  const [acceptedTerms, setAcceptedTerms] = useState(false)
+export function LoginStep({ formData, updateFormData, onNext, isSignIn, setIsSignIn }: LoginStepProps) {
+  const [isLoading, setIsLoading] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+  const router = useRouter()
+  const supabase = createClientComponentClient()
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const validateEmail = (email: string) => {
+    // More comprehensive email validation
+    const re = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/
+    return re.test(email)
+  }
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (isSignIn) {
-      // Handle sign in logic here
-      // For now, we'll just proceed to the next step
-      onNext()
-    } else {
-      onNext()
+    setIsLoading(true)
+    setError(null)
+
+    if (!validateEmail(formData.email)) {
+      setError("Please enter a valid email address")
+      setIsLoading(false)
+      return
+    }
+
+    if (formData.password.length < 8) {
+      setError("Password must be at least 8 characters long")
+      setIsLoading(false)
+      return
+    }
+
+    if (!isSignIn && !formData.acceptedTerms) {
+      setError("Please accept the terms and conditions")
+      setIsLoading(false)
+      return
+    }
+
+    try {
+      if (isSignIn) {
+        // Sign in the user
+        const { error: signInError } = await supabase.auth.signInWithPassword({
+          email: formData.email,
+          password: formData.password,
+        })
+
+        if (signInError) throw signInError
+
+        // Add a small delay before refreshing the session
+        await new Promise(resolve => setTimeout(resolve, 500))
+        
+        // Force a refresh of the session
+        await supabase.auth.refreshSession()
+        
+        // Add another small delay before navigation
+        await new Promise(resolve => setTimeout(resolve, 500))
+        
+        // Use hard refresh to ensure the session and side menu are properly loaded
+        window.location.href = "/dashboard"
+      } else {
+        // Continue to next step for sign up
+        onNext()
+      }
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "An error occurred")
+    } finally {
+      setIsLoading(false)
     }
   }
 
@@ -89,8 +142,8 @@ export function LoginStep({ formData, updateFormData, onNext }: LoginStepProps) 
           <div className="flex items-center space-x-2">
             <Checkbox
               id="terms"
-              checked={acceptedTerms}
-              onCheckedChange={(checked) => setAcceptedTerms(checked as boolean)}
+              checked={formData.acceptedTerms}
+              onCheckedChange={(checked) => updateFormData({ acceptedTerms: checked as boolean })}
               required
             />
             <label
@@ -109,21 +162,32 @@ export function LoginStep({ formData, updateFormData, onNext }: LoginStepProps) 
           </div>
         )}
 
-        <Button type="submit" className="w-full bg-[#fc6428] hover:bg-[#e55a23]">
-          {isSignIn ? "Sign In" : "Continue"}
-          <ArrowRight className="ml-2 h-4 w-4" />
-        </Button>
+        {error && (
+          <div className="text-sm text-red-500">
+            {error}
+          </div>
+        )}
 
-        <p className="text-center text-sm text-gray-500">
-          {isSignIn ? "Don't have an account? " : "Already have an account? "}
-          <button
-            type="button"
-            onClick={() => setIsSignIn(!isSignIn)}
-            className="text-[#fc6428] hover:underline"
+        <div className="flex flex-col gap-4">
+          <Button
+            type="submit"
+            className="w-full bg-[#fc6428] hover:bg-[#e55a23]"
+            disabled={isLoading || (!isSignIn && !formData.acceptedTerms)}
           >
-            {isSignIn ? "Sign up" : "Sign in"}
-          </button>
-        </p>
+            {isLoading ? "Loading..." : isSignIn ? "Sign In" : "Continue"}
+            <ArrowRight className="ml-2 h-4 w-4" />
+          </Button>
+
+          <Button
+            type="button"
+            variant="ghost"
+            onClick={() => setIsSignIn(!isSignIn)}
+          >
+            {isSignIn
+              ? "Don't have an account? Sign up"
+              : "Already have an account? Sign in"}
+          </Button>
+        </div>
       </form>
     </div>
   )

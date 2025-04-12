@@ -21,11 +21,13 @@ export type FormData = {
   businessName: string
   businessDescription: string
   contentGoals: string[]
+  acceptedTerms: boolean
   isSignIn: boolean
 }
 
 export function OnboardingFlow() {
   const [currentStep, setCurrentStep] = useState<OnboardingStep>("login")
+  const [isSignIn, setIsSignIn] = useState(false)
   const [formData, setFormData] = useState<FormData>({
     name: "",
     email: "",
@@ -35,6 +37,7 @@ export function OnboardingFlow() {
     businessName: "",
     businessDescription: "",
     contentGoals: [],
+    acceptedTerms: false,
     isSignIn: false,
   })
 
@@ -44,7 +47,7 @@ export function OnboardingFlow() {
 
   const nextStep = () => {
     if (currentStep === "login") {
-      if (formData.isSignIn) {
+      if (isSignIn) {
         // Redirect to dashboard when signing in
         window.location.href = "/dashboard"
         return
@@ -62,39 +65,22 @@ export function OnboardingFlow() {
     else if (currentStep === "finish") setCurrentStep("content-goals")
   }
 
-  const getStepNumber = () => {
-    switch (currentStep) {
-      case "login":
-        return 1
-      case "industry":
-        return 2
-      case "business-details":
-        return 3
-      case "content-goals":
-        return 4
-      case "finish":
-        return 5
-      default:
-        return 1
-    }
-  }
-
   return (
     <Card className="w-full max-w-3xl shadow-lg">
       <CardContent className="p-0">
-        {(!formData.isSignIn || currentStep !== "login") && (
-          <div className="p-6">
-            <div className="flex flex-col items-center mb-6">
-              <div className="flex items-center gap-3 mb-4">
-                <Image
-                  src="/siftlogo.png"
-                  alt="Sift Logo"
-                  width={24}
-                  height={24}
-                  className="w-6 h-6"
-                />
-                <h1 className="text-[1.5rem] font-grotesk font-semibold text-primary">Sift</h1>
-              </div>
+        <div className="p-6">
+          <div className="flex flex-col items-center mb-6">
+            <div className="flex items-center gap-3 mb-4">
+              <Image
+                src="/siftlogo.png"
+                alt="Sift Logo"
+                width={24}
+                height={24}
+                className="w-6 h-6"
+              />
+              <h1 className="text-[1.5rem] font-grotesk font-semibold text-primary">Sift</h1>
+            </div>
+            {!isSignIn && (
               <div className="flex justify-between w-full mt-4">
                 <div
                   className={`flex flex-col items-center ${currentStep === "login" ? "text-[#fc6428]" : "text-gray-400"}`}
@@ -108,7 +94,7 @@ export function OnboardingFlow() {
                   </div>
                   <span className="text-xs mt-1">Account</span>
                 </div>
-                <div className={`flex-1 mx-2 mt-5 h-0.5 ${getStepNumber() > 1 ? "bg-[#fc6428]" : "bg-gray-300"}`}></div>
+                <div className={`flex-1 mx-2 mt-5 h-0.5 ${currentStep !== "login" ? "bg-[#fc6428]" : "bg-gray-300"}`}></div>
                 <div
                   className={`flex flex-col items-center ${
                     currentStep === "industry" ? "text-[#fc6428]" : "text-gray-400"
@@ -116,18 +102,15 @@ export function OnboardingFlow() {
                 >
                   <div
                     className={`w-10 h-10 rounded-full flex items-center justify-center border-2 ${
-                      getStepNumber() >= 2
-                        ? currentStep === "industry"
-                          ? "border-[#fc6428] bg-[#fc6428] text-white"
-                          : "border-[#fc6428] text-[#fc6428]"
-                        : "border-gray-300"
+                      currentStep === "industry" ? "border-[#fc6428] bg-[#fc6428] text-white" : 
+                      currentStep !== "login" ? "border-[#fc6428] text-[#fc6428]" : "border-gray-300"
                     }`}
                   >
                     2
                   </div>
                   <span className="text-xs mt-1">Industry</span>
                 </div>
-                <div className={`flex-1 mx-2 mt-5 h-0.5 ${getStepNumber() > 2 ? "bg-[#fc6428]" : "bg-gray-300"}`}></div>
+                <div className={`flex-1 mx-2 mt-5 h-0.5 ${currentStep === "business-details" || currentStep === "content-goals" || currentStep === "finish" ? "bg-[#fc6428]" : "bg-gray-300"}`}></div>
                 <div
                   className={`flex flex-col items-center ${
                     currentStep === "business-details" ? "text-[#fc6428]" : "text-gray-400"
@@ -135,18 +118,15 @@ export function OnboardingFlow() {
                 >
                   <div
                     className={`w-10 h-10 rounded-full flex items-center justify-center border-2 ${
-                      getStepNumber() >= 3
-                        ? currentStep === "business-details"
-                          ? "border-[#fc6428] bg-[#fc6428] text-white"
-                          : "border-[#fc6428] text-[#fc6428]"
-                        : "border-gray-300"
+                      currentStep === "business-details" ? "border-[#fc6428] bg-[#fc6428] text-white" : 
+                      currentStep === "content-goals" || currentStep === "finish" ? "border-[#fc6428] text-[#fc6428]" : "border-gray-300"
                     }`}
                   >
                     3
                   </div>
                   <span className="text-xs mt-1">Business</span>
                 </div>
-                <div className={`flex-1 mx-2 mt-5 h-0.5 ${getStepNumber() > 3 ? "bg-[#fc6428]" : "bg-gray-300"}`}></div>
+                <div className={`flex-1 mx-2 mt-5 h-0.5 ${currentStep === "content-goals" || currentStep === "finish" ? "bg-[#fc6428]" : "bg-gray-300"}`}></div>
                 <div
                   className={`flex flex-col items-center ${
                     currentStep === "content-goals" ? "text-[#fc6428]" : "text-gray-400"
@@ -154,28 +134,21 @@ export function OnboardingFlow() {
                 >
                   <div
                     className={`w-10 h-10 rounded-full flex items-center justify-center border-2 ${
-                      getStepNumber() >= 4
-                        ? currentStep === "content-goals"
-                          ? "border-[#fc6428] bg-[#fc6428] text-white"
-                          : "border-[#fc6428] text-[#fc6428]"
-                        : "border-gray-300"
+                      currentStep === "content-goals" ? "border-[#fc6428] bg-[#fc6428] text-white" : 
+                      currentStep === "finish" ? "border-[#fc6428] text-[#fc6428]" : "border-gray-300"
                     }`}
                   >
                     4
                   </div>
                   <span className="text-xs mt-1">Goals</span>
                 </div>
-                <div className={`flex-1 mx-2 mt-5 h-0.5 ${getStepNumber() > 4 ? "bg-[#fc6428]" : "bg-gray-300"}`}></div>
+                <div className={`flex-1 mx-2 mt-5 h-0.5 ${currentStep === "finish" ? "bg-[#fc6428]" : "bg-gray-300"}`}></div>
                 <div
                   className={`flex flex-col items-center ${currentStep === "finish" ? "text-[#fc6428]" : "text-gray-400"}`}
                 >
                   <div
                     className={`w-10 h-10 rounded-full flex items-center justify-center border-2 ${
-                      getStepNumber() >= 5
-                        ? currentStep === "finish"
-                          ? "border-[#fc6428] bg-[#fc6428] text-white"
-                          : "border-[#fc6428] text-[#fc6428]"
-                        : "border-gray-300"
+                      currentStep === "finish" ? "border-[#fc6428] bg-[#fc6428] text-white" : "border-gray-300"
                     }`}
                   >
                     5
@@ -183,9 +156,9 @@ export function OnboardingFlow() {
                   <span className="text-xs mt-1">Complete</span>
                 </div>
               </div>
-            </div>
+            )}
           </div>
-        )}
+        </div>
 
         <AnimatePresence mode="wait">
           <motion.div
@@ -207,7 +180,13 @@ export function OnboardingFlow() {
                 transition={{ duration: 0.2, ease: [0.2, 0, 0, 1] }}
                 layout
               >
-                <LoginStep formData={formData} updateFormData={updateFormData} onNext={nextStep} />
+                <LoginStep 
+                  formData={formData} 
+                  updateFormData={updateFormData} 
+                  onNext={nextStep} 
+                  isSignIn={isSignIn}
+                  setIsSignIn={setIsSignIn}
+                />
               </motion.div>
             )}
 
