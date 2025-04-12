@@ -64,7 +64,7 @@ jobs:
                 script: |
                     docker run  \
                     -d \
-                    -p 3000:3000
+                    -p 3000:3000 \
                     ${{ secrets.DOCKER_USERNAME }}/hacathon-front:latest
 
             - name: Remove Github Actions IP from the security group
