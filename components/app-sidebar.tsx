@@ -2,15 +2,14 @@
 
 import * as React from "react"
 import {
-  BarChartIcon,
+  BarChart2,
   CameraIcon,
   DatabaseIcon,
-  FileCodeIcon,
-  FileTextIcon,
-  FolderIcon,
+  FileText,
   HelpCircleIcon,
   LayoutDashboardIcon,
   SettingsIcon,
+  UserCircleIcon,
   UsersIcon,
 } from "lucide-react"
 import { usePathname } from "next/navigation"
@@ -45,31 +44,34 @@ const data = {
     {
       title: "Analytics",
       url: "/analytics",
-      icon: BarChartIcon,
+      icon: BarChart2,
+      disabled: true,
     },
     {
-      title: "Customize",
-      url: "/customize",
-      icon: SettingsIcon,
-    },
-    {
-      title: "Team",
-      url: "/team",
+      title: "Teams",
+      url: "/teams",
       icon: UsersIcon,
+      disabled: true,
     },
   ],
   documents: [
     {
-      name: "Saved",
+      name: "Saved Content",
       url: "/saved",
       icon: DatabaseIcon,
+    },
+    {
+      name: "Reports",
+      url: "/reports",
+      icon: FileText,
+      disabled: true,
     },
   ],
   navSecondary: [
     {
-      title: "Settings",
-      url: "/settings",
-      icon: SettingsIcon,
+      title: "Account",
+      url: "/profile",
+      icon: UserCircleIcon,
     },
     {
       title: "Get Help",

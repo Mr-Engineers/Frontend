@@ -2,8 +2,10 @@
 
 import { Badge } from "@/components/ui/badge"
 import { Progress } from "@/components/ui/progress"
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { TrendDetailsDialog } from "./trend-details-dialog"
+import { TrendsService } from "@/lib/services/trends-service"
+import { Skeleton } from "@/components/ui/skeleton"
 
 interface TrendingHashtagsProps {
   platform: "x" | "tiktok" | "youtube"
@@ -17,83 +19,43 @@ interface Hashtag {
   relevance: number
 }
 
-// Mock data for trending hashtags
-const mockData: Record<string, Record<string, Hashtag[]>> = {
-  today: {
-    x: [
-      { tag: "#SmallBusiness", volume: 45000, growth: 12, relevance: 95 },
-      { tag: "#Entrepreneurship", volume: 32000, growth: 8, relevance: 90 },
-      { tag: "#MarketingTips", volume: 28000, growth: 15, relevance: 85 },
-      { tag: "#BusinessGrowth", volume: 22000, growth: 5, relevance: 80 },
-      { tag: "#StartupLife", volume: 18000, growth: 10, relevance: 75 },
-    ],
-    tiktok: [
-      { tag: "#SmallBusinessCheck", volume: 120000, growth: 25, relevance: 90 },
-      { tag: "#BusinessTok", volume: 95000, growth: 18, relevance: 85 },
-      { tag: "#EntrepreneurLife", volume: 85000, growth: 12, relevance: 80 },
-      { tag: "#MarketingStrategy", volume: 65000, growth: 8, relevance: 75 },
-      { tag: "#BusinessOwner", volume: 55000, growth: 15, relevance: 70 },
-    ],
-    youtube: [
-      { tag: "small business tips", volume: 35000, growth: 10, relevance: 85 },
-      { tag: "entrepreneur daily", volume: 28000, growth: 7, relevance: 80 },
-      { tag: "marketing strategy", volume: 25000, growth: 12, relevance: 75 },
-      { tag: "business growth hacks", volume: 22000, growth: 15, relevance: 70 },
-      { tag: "startup success", volume: 18000, growth: 5, relevance: 65 },
-    ],
-  },
-  week: {
-    x: [
-      { tag: "#BusinessStrategy", volume: 120000, growth: 18, relevance: 92 },
-      { tag: "#SmallBizTips", volume: 95000, growth: 15, relevance: 88 },
-      { tag: "#EntrepreneurMindset", volume: 85000, growth: 10, relevance: 85 },
-      { tag: "#GrowthHacking", volume: 75000, growth: 22, relevance: 80 },
-      { tag: "#DigitalMarketing", volume: 65000, growth: 8, relevance: 78 },
-    ],
-    tiktok: [
-      { tag: "#BusinessHacks", volume: 250000, growth: 30, relevance: 90 },
-      { tag: "#SmallBizTok", volume: 180000, growth: 25, relevance: 85 },
-      { tag: "#MarketingTips", volume: 150000, growth: 20, relevance: 82 },
-      { tag: "#EntrepreneurTok", volume: 120000, growth: 15, relevance: 80 },
-      { tag: "#BusinessAdvice", volume: 100000, growth: 12, relevance: 75 },
-    ],
-    youtube: [
-      { tag: "business growth strategy", volume: 85000, growth: 15, relevance: 88 },
-      { tag: "entrepreneur success stories", volume: 75000, growth: 12, relevance: 85 },
-      { tag: "marketing for small business", volume: 65000, growth: 18, relevance: 82 },
-      { tag: "digital marketing trends", volume: 55000, growth: 10, relevance: 78 },
-      { tag: "small business tips and tricks", volume: 45000, growth: 8, relevance: 75 },
-    ],
-  },
-  month: {
-    x: [
-      { tag: "#BusinessInnovation", volume: 350000, growth: 25, relevance: 90 },
-      { tag: "#EntrepreneurJourney", volume: 280000, growth: 20, relevance: 88 },
-      { tag: "#MarketingStrategy", volume: 250000, growth: 18, relevance: 85 },
-      { tag: "#SmallBusinessOwner", volume: 220000, growth: 15, relevance: 82 },
-      { tag: "#BusinessGrowth", volume: 200000, growth: 12, relevance: 80 },
-    ],
-    tiktok: [
-      { tag: "#BusinessGrowthTips", volume: 500000, growth: 35, relevance: 92 },
-      { tag: "#EntrepreneurMindset", volume: 450000, growth: 30, relevance: 90 },
-      { tag: "#SmallBusinessSuccess", volume: 400000, growth: 28, relevance: 88 },
-      { tag: "#MarketingHacks", volume: 350000, growth: 25, relevance: 85 },
-      { tag: "#BusinessStrategy", volume: 300000, growth: 20, relevance: 82 },
-    ],
-    youtube: [
-      { tag: "business success strategies", volume: 150000, growth: 22, relevance: 90 },
-      { tag: "entrepreneur lifestyle", volume: 130000, growth: 18, relevance: 88 },
-      { tag: "marketing masterclass", volume: 120000, growth: 20, relevance: 85 },
-      { tag: "small business growth tips", volume: 100000, growth: 15, relevance: 82 },
-      { tag: "digital marketing for business", volume: 90000, growth: 12, relevance: 80 },
-    ],
-  },
-}
-
 export function TrendingHashtags({ platform, timePeriod }: TrendingHashtagsProps) {
-  const hashtags = mockData[timePeriod][platform]
+  const [hashtags, setHashtags] = useState<Hashtag[]>([])
+  const [isLoading, setIsLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
   const [selectedTrend, setSelectedTrend] = useState<(Hashtag & { platform: string }) | null>(null)
   const [dialogOpen, setDialogOpen] = useState(false)
+
+  useEffect(() => {
+    const fetchTrends = async () => {
+      setIsLoading(true)
+      setError(null)
+      try {
+        let trends: Hashtag[]
+        switch (platform) {
+          case "x":
+            trends = await TrendsService.getXTrends(timePeriod)
+            break
+          case "tiktok":
+            trends = await TrendsService.getTikTokTrends(timePeriod)
+            break
+          case "youtube":
+            trends = await TrendsService.getYouTubeTrends(timePeriod)
+            break
+          default:
+            trends = []
+        }
+        setHashtags(trends)
+      } catch (err) {
+        setError("Failed to load trends. Please try again later.")
+        console.error("Error fetching trends:", err)
+      } finally {
+        setIsLoading(false)
+      }
+    }
+
+    fetchTrends()
+  }, [platform, timePeriod])
 
   // Format volume with K or M suffix
   const formatVolume = (volume: number) => {
@@ -109,6 +71,38 @@ export function TrendingHashtags({ platform, timePeriod }: TrendingHashtagsProps
   const handleTrendClick = (hashtag: Hashtag) => {
     setSelectedTrend({ ...hashtag, platform: platform === "x" ? "X" : platform })
     setDialogOpen(true)
+  }
+
+  if (isLoading) {
+    return (
+      <div className="space-y-4 mt-4">
+        {[...Array(5)].map((_, i) => (
+          <div key={i} className="flex items-center justify-between p-3 border rounded-lg">
+            <div className="flex items-center gap-3">
+              <Skeleton className="h-6 w-24" />
+              <Skeleton className="h-4 w-20" />
+            </div>
+            <div className="flex items-center gap-4">
+              <div className="flex flex-col">
+                <Skeleton className="h-4 w-16 mb-2" />
+                <div className="flex items-center gap-2">
+                  <Skeleton className="w-24 h-2" />
+                  <Skeleton className="h-4 w-8" />
+                </div>
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
+    )
+  }
+
+  if (error) {
+    return (
+      <div className="p-4 text-center text-red-500">
+        {error}
+      </div>
+    )
   }
 
   return (

@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button"
 import { TrendingHashtags } from "@/components/trending-hashtags"
 import { RecommendedContent } from "@/components/recommended-content"
 import { DashboardHeader } from "@/components/dashboard-header"
+import { SidebarTrigger } from "@/components/ui/sidebar"
 
 type TimePeriod = "today" | "week" | "month"
 
@@ -15,6 +16,12 @@ export function DashboardComponent() {
 
   return (
     <div className="flex flex-col h-full">
+      <div className="border-b">
+        <div className="flex h-16 items-center px-4 md:px-6">
+          <SidebarTrigger />
+          <div className="ml-4 font-semibold text-lg text-[#fc6428] md:hidden">TrendPulse</div>
+        </div>
+      </div>
       <div className="flex flex-col gap-4 py-4 md:gap-6 md:py-6">
         <div className="px-4 lg:px-6">
           <DashboardHeader 

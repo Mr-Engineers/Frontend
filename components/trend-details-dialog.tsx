@@ -4,6 +4,9 @@ import { Badge } from "@/components/ui/badge"
 import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { TrendingUp, Clock, Info } from "lucide-react"
+import { TrendsService, TrendDetails } from "@/lib/services/trends-service"
+import { useEffect, useState } from "react"
+import { Skeleton } from "@/components/ui/skeleton"
 
 interface TrendDetailsDialogProps {
   isOpen: boolean
@@ -17,50 +20,22 @@ interface TrendDetailsDialogProps {
   } | null
 }
 
-// Mock data for trend history
-const generateTrendHistory = (type: "long" | "viral") => {
-  const days = type === "long" ? 30 : 7
-  const data = []
-
-  if (type === "long") {
-    // Long trend with steady growth
-    let baseValue = 10000 + Math.random() * 5000
-    for (let i = 0; i < days; i++) {
-      baseValue = baseValue + (Math.random() * 1000 - 200)
-      data.push({
-        day: i + 1,
-        volume: Math.round(baseValue),
-      })
-    }
-  } else {
-    // Viral trend with sharp spike
-    let baseValue = 1000 + Math.random() * 500
-    for (let i = 0; i < days; i++) {
-      if (i < 2) {
-        baseValue = baseValue + Math.random() * 500
-      } else if (i < 4) {
-        baseValue = baseValue + Math.random() * 10000
-      } else {
-        baseValue = baseValue - Math.random() * 2000
-        baseValue = Math.max(baseValue, 1000)
-      }
-      data.push({
-        day: i + 1,
-        volume: Math.round(baseValue),
-      })
-    }
-  }
-
-  return data
-}
-
 export function TrendDetailsDialog({ isOpen, onClose, trend }: TrendDetailsDialogProps) {
-  // Determine if this is a long trend or viral trend (randomly for demo)
-  const trendType = Math.random() > 0.5 ? "long" : "viral"
-  const trendHistory = generateTrendHistory(trendType)
+  const [trendDetails, setTrendDetails] = useState<TrendDetails | null>(null)
+  const [isLoading, setIsLoading] = useState(false)
 
-  // Find max value for scaling the chart
-  const maxVolume = Math.max(...trendHistory.map((d) => d.volume))
+  useEffect(() => {
+    if (isOpen && trend) {
+      setIsLoading(true)
+      TrendsService.getTrendDetails(
+        trend.platform.toLowerCase() as "x" | "tiktok" | "youtube",
+        trend.tag
+      ).then((details) => {
+        setTrendDetails(details)
+        setIsLoading(false)
+      })
+    }
+  }, [isOpen, trend])
 
   // Format volume with K or M suffix
   const formatVolume = (volume: number) => {
@@ -95,7 +70,11 @@ export function TrendDetailsDialog({ isOpen, onClose, trend }: TrendDetailsDialo
             <CardContent className="p-4 flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-muted-foreground">Current Volume</p>
-                <p className="text-2xl font-bold">{formatVolume(trend.volume)}</p>
+                {isLoading ? (
+                  <Skeleton className="h-8 w-24" />
+                ) : (
+                  <p className="text-2xl font-bold">{formatVolume(trendDetails?.volume || 0)}</p>
+                )}
                 <div className="text-xs text-gray-500 mt-1">Total posts</div>
               </div>
               <div className="h-12 w-12 rounded-full bg-[#fc6428]/10 flex items-center justify-center">
@@ -108,9 +87,17 @@ export function TrendDetailsDialog({ isOpen, onClose, trend }: TrendDetailsDialo
             <CardContent className="p-4 flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-muted-foreground">Trend Type</p>
-                <p className="text-2xl font-bold capitalize">{trendType}</p>
+                {isLoading ? (
+                  <Skeleton className="h-8 w-24" />
+                ) : (
+                  <p className="text-2xl font-bold capitalize">{trendDetails?.insights.type}</p>
+                )}
                 <div className="text-xs text-gray-500 mt-1">
-                  {trendType === "long" ? "Sustained interest" : "Rapid growth"}
+                  {isLoading ? (
+                    <Skeleton className="h-4 w-32" />
+                  ) : (
+                    trendDetails?.insights.type === "viral" ? "Rapid growth" : "Sustained interest"
+                  )}
                 </div>
               </div>
               <div className="h-12 w-12 rounded-full bg-[#fc6428]/10 flex items-center justify-center">
@@ -123,97 +110,100 @@ export function TrendDetailsDialog({ isOpen, onClose, trend }: TrendDetailsDialo
         <div className="mt-6">
           <h3 className="text-lg font-medium mb-4">Trend History</h3>
           <div className="h-[200px] w-full relative bg-white p-6 rounded-lg border">
-            {/* SVG line chart with proper viewBox and padding */}
-            <svg
-              width="100%"
-              height="100%"
-              viewBox="0 0 600 250"
-              preserveAspectRatio="none"
-              className="overflow-visible"
-            >
-              {/* Grid lines */}
-              <g className="grid-lines">
-                {[0, 0.25, 0.5, 0.75, 1].map((ratio, i) => (
-                  <line
-                    key={`grid-${i}`}
-                    x1="50"
-                    y1={200 - ratio * 180}
-                    x2="550"
-                    y2={200 - ratio * 180}
-                    stroke="#e5e7eb"
-                    strokeWidth="1"
-                    strokeDasharray={i > 0 ? "4 4" : ""}
-                  />
-                ))}
-              </g>
+            {isLoading ? (
+              <Skeleton className="h-full w-full" />
+            ) : (
+              <svg
+                width="100%"
+                height="100%"
+                viewBox="0 0 600 250"
+                preserveAspectRatio="none"
+                className="overflow-visible"
+              >
+                {/* Grid lines */}
+                <g className="grid-lines">
+                  {[0, 0.25, 0.5, 0.75, 1].map((ratio, i) => (
+                    <line
+                      key={`grid-${i}`}
+                      x1="50"
+                      y1={200 - ratio * 180}
+                      x2="550"
+                      y2={200 - ratio * 180}
+                      stroke="#e5e7eb"
+                      strokeWidth="1"
+                      strokeDasharray={i > 0 ? "4 4" : ""}
+                    />
+                  ))}
+                </g>
 
-              {/* Area under the line with gradient */}
-              <defs>
-                <linearGradient id="areaGradient" x1="0%" y1="0%" x2="0%" y2="100%">
-                  <stop offset="0%" stopColor="#fc6428" stopOpacity="0.3" />
-                  <stop offset="100%" stopColor="#fc6428" stopOpacity="0.05" />
-                </linearGradient>
-              </defs>
-              <path
-                d={
-                  trendHistory
+                {/* Area under the line with gradient */}
+                <defs>
+                  <linearGradient id="areaGradient" x1="0%" y1="0%" x2="0%" y2="100%">
+                    <stop offset="0%" stopColor="#fc6428" stopOpacity="0.3" />
+                    <stop offset="100%" stopColor="#fc6428" stopOpacity="0.05" />
+                  </linearGradient>
+                </defs>
+                <path
+                  d={
+                    trendDetails?.trendHistory
+                      .map((point, i) => {
+                        const x = 50 + (i / (trendDetails.trendHistory.length - 1)) * 500
+                        const y = 200 - (point.volume / Math.max(...trendDetails.trendHistory.map(p => p.volume))) * 180
+                        return i === 0 ? `M ${x} ${y}` : `L ${x} ${y}`
+                      })
+                      .join(" ") + ` L 550 ${200} L 50 ${200} Z`
+                  }
+                  fill="url(#areaGradient)"
+                />
+
+                {/* Line chart */}
+                <path
+                  d={trendDetails?.trendHistory
                     .map((point, i) => {
-                      const x = 50 + (i / (trendHistory.length - 1)) * 500
-                      const y = 200 - (point.volume / maxVolume) * 180
+                      const x = 50 + (i / (trendDetails.trendHistory.length - 1)) * 500
+                      const y = 200 - (point.volume / Math.max(...trendDetails.trendHistory.map(p => p.volume))) * 180
                       return i === 0 ? `M ${x} ${y}` : `L ${x} ${y}`
                     })
-                    .join(" ") + ` L 550 ${200} L 50 ${200} Z`
-                }
-                fill="url(#areaGradient)"
-              />
+                    .join(" ")}
+                  fill="none"
+                  stroke="#fc6428"
+                  strokeWidth="3"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
 
-              {/* Line chart */}
-              <path
-                d={trendHistory
-                  .map((point, i) => {
-                    const x = 50 + (i / (trendHistory.length - 1)) * 500
-                    const y = 200 - (point.volume / maxVolume) * 180
-                    return i === 0 ? `M ${x} ${y}` : `L ${x} ${y}`
-                  })
-                  .join(" ")}
-                fill="none"
-                stroke="#fc6428"
-                strokeWidth="3"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              />
+                {/* Data points */}
+                {trendDetails?.trendHistory.map((point, i) => {
+                  const x = 50 + (i / (trendDetails.trendHistory.length - 1)) * 500
+                  const y = 200 - (point.volume / Math.max(...trendDetails.trendHistory.map(p => p.volume))) * 180
+                  return <circle key={i} cx={x} cy={y} r="4" fill="#fc6428" stroke="white" strokeWidth="2" />
+                })}
 
-              {/* Data points */}
-              {trendHistory.map((point, i) => {
-                const x = 50 + (i / (trendHistory.length - 1)) * 500
-                const y = 200 - (point.volume / maxVolume) * 180
-                return <circle key={i} cx={x} cy={y} r="4" fill="#fc6428" stroke="white" strokeWidth="2" />
-              })}
+                {/* X-axis labels */}
+                {trendDetails?.trendHistory.map((point, i) => {
+                  if (i % Math.ceil(trendDetails.trendHistory.length / 5) === 0 || i === trendDetails.trendHistory.length - 1) {
+                    const x = 50 + (i / (trendDetails.trendHistory.length - 1)) * 500
+                    return (
+                      <text key={i} x={x} y="235" textAnchor="middle" fontSize="14" fill="#6b7280" className="font-medium">
+                        {point.date.split('-')[2]}
+                      </text>
+                    )
+                  }
+                  return null
+                })}
 
-              {/* X-axis labels */}
-              {trendHistory.map((point, i) => {
-                if (i % Math.ceil(trendHistory.length / 5) === 0 || i === trendHistory.length - 1) {
-                  const x = 50 + (i / (trendHistory.length - 1)) * 500
+                {/* Y-axis labels */}
+                {[0, 0.25, 0.5, 0.75, 1].map((ratio, i) => {
+                  const y = 200 - ratio * 180
+                  const value = Math.round(Math.max(...(trendDetails?.trendHistory.map(p => p.volume) || [0])) * ratio)
                   return (
-                    <text key={i} x={x} y="235" textAnchor="middle" fontSize="14" fill="#6b7280" className="font-medium">
-                      Day {point.day}
+                    <text key={i} x="40" y={y} textAnchor="end" dominantBaseline="middle" fontSize="14" fill="#6b7280" className="font-medium">
+                      {formatVolume(value)}
                     </text>
                   )
-                }
-                return null
-              })}
-
-              {/* Y-axis labels */}
-              {[0, 0.25, 0.5, 0.75, 1].map((ratio, i) => {
-                const y = 200 - ratio * 180
-                const value = Math.round(maxVolume * ratio)
-                return (
-                  <text key={i} x="40" y={y} textAnchor="end" dominantBaseline="middle" fontSize="14" fill="#6b7280" className="font-medium">
-                    {formatVolume(value)}
-                  </text>
-                )
-              })}
-            </svg>
+                })}
+              </svg>
+            )}
           </div>
         </div>
 
@@ -222,19 +212,24 @@ export function TrendDetailsDialog({ isOpen, onClose, trend }: TrendDetailsDialo
             <Info className="h-5 w-5 text-[#fc6428] mt-0.5" />
             <div>
               <h4 className="font-medium">Trend Insights</h4>
-              <p className="text-sm text-gray-600 mt-1">
-                {trendType === "long"
-                  ? `This is a long-lasting trend that has shown consistent engagement over time. It's likely to remain relevant for your audience in the coming weeks.`
-                  : `This is a viral trend with a sharp spike in popularity. It may not last long, so consider creating content quickly to capitalize on its current momentum.`}
-              </p>
-              <div className="mt-3 text-sm">
-                <span className="font-medium">Recommendation: </span>
-                <span className="text-gray-600">
-                  {trendType === "long"
-                    ? "Create in-depth, evergreen content that can perform well over time."
-                    : "Create timely, reactive content to capture immediate attention."}
-                </span>
-              </div>
+              {isLoading ? (
+                <>
+                  <Skeleton className="h-4 w-full mt-2" />
+                  <Skeleton className="h-4 w-3/4 mt-2" />
+                </>
+              ) : (
+                <>
+                  <p className="text-sm text-gray-600 mt-1">
+                    {trendDetails?.description}
+                  </p>
+                  <div className="mt-3 text-sm">
+                    <span className="font-medium">Recommendation: </span>
+                    <span className="text-gray-600">
+                      {trendDetails?.insights.recommendedAction}
+                    </span>
+                  </div>
+                </>
+              )}
             </div>
           </div>
         </div>

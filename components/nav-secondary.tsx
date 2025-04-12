@@ -17,6 +17,7 @@ interface NavSecondaryProps {
     title: string
     url: string
     icon: LucideIcon
+    disabled?: boolean
   }[]
   currentPath: string
   className?: string
@@ -36,16 +37,26 @@ export function NavSecondary({
             <SidebarMenuItem key={item.title}>
               <SidebarMenuButton
                 className={`transition-colors duration-200 ${
-                  currentPath === item.url
+                  item.disabled
+                    ? "opacity-50 cursor-not-allowed"
+                    : currentPath === item.url
                     ? "bg-accent text-accent-foreground"
                     : "hover:bg-accent hover:text-accent-foreground"
                 }`}
-                asChild
+                disabled={item.disabled}
+                asChild={!item.disabled}
               >
-                <Link href={item.url}>
-                  <item.icon />
-                  <span>{item.title}</span>
-                </Link>
+                {item.disabled ? (
+                  <div className="flex items-center gap-2">
+                    <item.icon />
+                    <span>{item.title}</span>
+                  </div>
+                ) : (
+                  <Link href={item.url}>
+                    <item.icon />
+                    <span>{item.title}</span>
+                  </Link>
+                )}
               </SidebarMenuButton>
             </SidebarMenuItem>
           ))}

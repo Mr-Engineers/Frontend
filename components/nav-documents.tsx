@@ -1,6 +1,6 @@
 "use client"
 
-import { type LucideIcon } from "lucide-react"
+import { FileText, BarChart2, type LucideIcon } from "lucide-react"
 import Link from "next/link"
 
 import {
@@ -16,6 +16,7 @@ interface NavDocumentsProps {
     name: string
     url: string
     icon: LucideIcon
+    disabled?: boolean
   }[]
   currentPath: string
 }
@@ -29,16 +30,26 @@ export function NavDocuments({ items, currentPath }: NavDocumentsProps) {
           <SidebarMenuItem key={item.name}>
             <SidebarMenuButton
               className={`transition-colors duration-200 ${
-                currentPath === item.url
+                item.disabled
+                  ? "opacity-50 cursor-not-allowed"
+                  : currentPath === item.url
                   ? "bg-accent text-accent-foreground"
                   : "hover:bg-accent hover:text-accent-foreground"
               }`}
-              asChild
+              disabled={item.disabled}
+              asChild={!item.disabled}
             >
-              <Link href={item.url}>
-                <item.icon />
-                <span>{item.name}</span>
-              </Link>
+              {item.disabled ? (
+                <div className="flex items-center gap-2">
+                  <item.icon className="h-4 w-4" />
+                  <span>{item.name}</span>
+                </div>
+              ) : (
+                <Link href={item.url}>
+                  <item.icon className="h-4 w-4" />
+                  <span>{item.name}</span>
+                </Link>
+              )}
             </SidebarMenuButton>
           </SidebarMenuItem>
         ))}

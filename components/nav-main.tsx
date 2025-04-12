@@ -1,6 +1,6 @@
 "use client"
 
-import { PlusCircleIcon, type LucideIcon } from "lucide-react"
+import { PlusCircleIcon, type LucideIcon, Activity, Users } from "lucide-react"
 import Link from "next/link"
 import { useState } from "react"
 
@@ -19,6 +19,7 @@ interface NavMainProps {
     title: string
     url: string
     icon?: LucideIcon
+    disabled?: boolean
   }[]
   currentPath: string
 }
@@ -43,7 +44,7 @@ export function NavMain({ items, currentPath }: NavMainProps) {
                 className="min-w-8 bg-primary text-primary-foreground duration-200 ease-linear hover:bg-primary/90 hover:text-primary-foreground active:bg-primary/90 active:text-primary-foreground"
                 onClick={() => setIsPlatformDialogOpen(true)}
               >
-                <PlusCircleIcon />
+                <PlusCircleIcon className="h-4 w-4" />
                 <span>Add platforms</span>
               </SidebarMenuButton>
             </SidebarMenuItem>
@@ -54,16 +55,26 @@ export function NavMain({ items, currentPath }: NavMainProps) {
                 <SidebarMenuButton
                   tooltip={item.title}
                   className={`transition-colors duration-200 ${
-                    currentPath === item.url
+                    item.disabled
+                      ? "opacity-50 cursor-not-allowed"
+                      : currentPath === item.url
                       ? "bg-accent text-accent-foreground"
                       : "hover:bg-accent hover:text-accent-foreground"
                   }`}
-                  asChild
+                  disabled={item.disabled}
+                  asChild={!item.disabled}
                 >
-                  <Link href={item.url}>
-                    {item.icon && <item.icon />}
-                    <span>{item.title}</span>
-                  </Link>
+                  {item.disabled ? (
+                    <div className="flex items-center gap-2">
+                      {item.icon && <item.icon className="h-4 w-4" />}
+                      <span>{item.title}</span>
+                    </div>
+                  ) : (
+                    <Link href={item.url}>
+                      {item.icon && <item.icon className="h-4 w-4" />}
+                      <span>{item.title}</span>
+                    </Link>
+                  )}
                 </SidebarMenuButton>
               </SidebarMenuItem>
             ))}

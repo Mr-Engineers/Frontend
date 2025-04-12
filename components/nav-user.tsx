@@ -9,6 +9,7 @@ import {
 } from "lucide-react"
 import { useRouter } from "next/navigation"
 import { createClientComponentClient } from "@supabase/auth-helpers-nextjs"
+import Link from "next/link"
 
 import {
   Avatar,
@@ -93,16 +94,18 @@ export function NavUser({
             </DropdownMenuLabel>
             <DropdownMenuSeparator />
             <DropdownMenuGroup>
-              <DropdownMenuItem>
-                <UserCircleIcon />
-                Account
+              <DropdownMenuItem asChild className="cursor-pointer">
+                <Link href="/profile">
+                  <UserCircleIcon className="mr-2 h-4 w-4" />
+                  Account
+                </Link>
               </DropdownMenuItem>
-              <DropdownMenuItem>
-                <CreditCardIcon />
+              <DropdownMenuItem disabled className="opacity-50 cursor-not-allowed">
+                <CreditCardIcon className="mr-2 h-4 w-4" />
                 Billing
               </DropdownMenuItem>
-              <DropdownMenuItem>
-                <BellIcon />
+              <DropdownMenuItem disabled className="opacity-50 cursor-not-allowed">
+                <BellIcon className="mr-2 h-4 w-4" />
                 Notifications
               </DropdownMenuItem>
             </DropdownMenuGroup>
