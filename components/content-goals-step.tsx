@@ -4,7 +4,7 @@ import type React from "react"
 import type { FormData } from "@/components/onboarding-flow"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
-import { ArrowLeft, ArrowRight, Target, Users, ShoppingCart, Heart, LightbulbIcon } from "lucide-react"
+import { ArrowLeft, ArrowRight, Target, Users, ShoppingCart, Heart, Lightbulb } from "lucide-react"
 
 interface ContentGoalsStepProps {
   formData: FormData
@@ -19,12 +19,7 @@ const contentGoals = [
   { id: "customer-engagement", label: "Customer Engagement", description: "Build stronger relationships", icon: Heart },
   { id: "product-promotion", label: "Product Promotion", description: "Highlight your offerings", icon: ShoppingCart },
   { id: "community-building", label: "Community Building", description: "Create a loyal following", icon: Users },
-  {
-    id: "thought-leadership",
-    label: "Thought Leadership",
-    description: "Establish industry expertise",
-    icon: LightbulbIcon,
-  },
+  { id: "thought-leadership", label: "Thought Leadership", description: "Establish industry expertise", icon: Lightbulb },
 ]
 
 export function ContentGoalsStep({ formData, updateFormData, onNext, onPrev }: ContentGoalsStepProps) {

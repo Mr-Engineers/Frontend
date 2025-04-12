@@ -44,6 +44,7 @@ export function FinishStep({ formData, onPrev }: FinishStepProps) {
         </div>
       </div>
 
+      {/* Resources section commented out for now
       <div className="space-y-4 mb-8">
         <h2 className="text-lg font-medium">Resources to get started:</h2>
         <div className="grid gap-3">
@@ -92,6 +93,7 @@ export function FinishStep({ formData, onPrev }: FinishStepProps) {
           </Link>
         </div>
       </div>
+      */}
 
       <div className="flex justify-between pt-4">
         <Button type="button" variant="outline" onClick={onPrev}>
