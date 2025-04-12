@@ -29,7 +29,7 @@ const mockProfileData: ProfileFormData = {
 }
 
 export class ProfileService {
-  private static API_BASE_URL = 'http://localhost:5000'
+  private static API_BASE_URL = 'http://18.201.217.42:5000'
 
   static async getProfileData(): Promise<ProfileFormData> {
     try {
