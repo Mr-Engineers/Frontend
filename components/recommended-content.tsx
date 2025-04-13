@@ -3,10 +3,12 @@
 import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
-import { Twitter, Youtube, BookmarkPlus, Video, ImageIcon, FileText, Lightbulb, Sparkles } from "lucide-react"
+import { Twitter, Youtube, BookmarkPlus, Video, ImageIcon, FileText, Lightbulb, Sparkles, BookmarkCheck } from "lucide-react"
 import { useState, useEffect } from "react"
 import { TrendsService } from "@/lib/services/trends-service"
+import { SavedContentService } from "@/lib/services/saved-content-service"
 import { Skeleton } from "@/components/ui/skeleton"
+import { toast } from "sonner"
 
 interface RecommendedContentProps {
   timePeriod: "today" | "week" | "month"
@@ -62,6 +64,25 @@ export function RecommendedContent({ timePeriod }: RecommendedContentProps) {
 
     return () => clearInterval(interval)
   }, [isLoading])
+
+  const handleSave = async (content: ContentRecommendation) => {
+    try {
+      const success = await SavedContentService.saveContent(content)
+      if (success) {
+        setRecommendations(prev => 
+          prev.map(item => 
+            item.id === content.id ? { ...item, isSaved: true } : item
+          )
+        )
+        toast.success("Content saved successfully")
+      } else {
+        toast.error("Failed to save content")
+      }
+    } catch (error) {
+      console.error("Error saving content:", error)
+      toast.error("Failed to save content")
+    }
+  }
 
   const getPlatformIcon = (platform: string) => {
     switch (platform) {
@@ -151,6 +172,27 @@ export function RecommendedContent({ timePeriod }: RecommendedContentProps) {
                     {tag}
                   </Badge>
                 ))}
+              </div>
+              <div className="flex justify-between items-center">
+                <div className="text-sm">
+                  <span className="text-gray-500">Relevance: </span>
+                  <span className="font-medium">{rec.relevance}</span>
+                </div>
+                <div>
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    className={`h-8 ${rec.isSaved ? "bg-orange-100 text-orange-600 hover:bg-orange-200 hover:text-orange-700" : ""}`}
+                    onClick={() => handleSave(rec)}
+                  >
+                    {rec.isSaved ? (
+                      <BookmarkCheck className="h-4 w-4 mr-1" />
+                    ) : (
+                      <BookmarkPlus className="h-4 w-4 mr-1" />
+                    )}
+                    {rec.isSaved ? "Saved" : "Save"}
+                  </Button>
+                </div>
               </div>
             </div>
           </CardContent>

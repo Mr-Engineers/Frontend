@@ -4,7 +4,7 @@ import { Badge } from "@/components/ui/badge"
 import { Progress } from "@/components/ui/progress"
 import { useState, useEffect } from "react"
 import { TrendDetailsDialog } from "./trend-details-dialog"
-import { TrendsService } from "@/lib/services/trends-service"
+import { Trend, TrendsService } from "@/lib/services/trends-service"
 import { Skeleton } from "@/components/ui/skeleton"
 
 interface TrendingHashtagsProps {
@@ -20,10 +20,10 @@ interface Hashtag {
 }
 
 export function TrendingHashtags({ platform, timePeriod }: TrendingHashtagsProps) {
-  const [hashtags, setHashtags] = useState<Hashtag[]>([])
+  const [hashtags, setHashtags] = useState<Trend[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
-  const [selectedTrend, setSelectedTrend] = useState<(Hashtag & { platform: string }) | null>(null)
+  const [selectedTrend, setSelectedTrend] = useState<Trend>({} as Trend)
   const [dialogOpen, setDialogOpen] = useState(false)
 
   useEffect(() => {
@@ -31,7 +31,7 @@ export function TrendingHashtags({ platform, timePeriod }: TrendingHashtagsProps
       setIsLoading(true)
       setError(null)
       try {
-        let trends: Hashtag[]
+        let trends: Trend[]
         switch (platform) {
           case "x":
             trends = await TrendsService.getXTrends(timePeriod)
@@ -45,6 +45,7 @@ export function TrendingHashtags({ platform, timePeriod }: TrendingHashtagsProps
           default:
             trends = []
         }
+        console.log("trend", trends)
         setHashtags(trends)
       } catch (err) {
         setError("Failed to load trends. Please try again later.")
@@ -68,7 +69,7 @@ export function TrendingHashtags({ platform, timePeriod }: TrendingHashtagsProps
     return volume.toString()
   }
 
-  const handleTrendClick = (hashtag: Hashtag) => {
+  const handleTrendClick = (hashtag: Trend) => {
     setSelectedTrend({ ...hashtag, platform: platform === "x" ? "X" : platform })
     setDialogOpen(true)
   }
@@ -120,7 +121,7 @@ export function TrendingHashtags({ platform, timePeriod }: TrendingHashtagsProps
             >
               {hashtag.tag}
             </Badge>
-            <span className="text-sm text-gray-500">{formatVolume(hashtag.volume)} posts</span>
+            <span className="text-sm text-gray-500">{formatVolume(hashtag.views)} posts</span>
           </div>
           <div className="flex items-center gap-4">
             <div className="flex flex-col">

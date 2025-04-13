@@ -1,3 +1,5 @@
+import { createClientComponentClient } from "@supabase/auth-helpers-nextjs"
+
 export interface SavedContent {
   id: string
   title: string
@@ -63,6 +65,25 @@ const mockSavedContent: SavedContent[] = [
 ]
 
 export class SavedContentService {
+  private static API_BASE_URL = 'http://18.201.217.41:5000'
+
+  private static async getAuthHeaders() {
+    const supabase = createClientComponentClient()
+    const { data: { session } } = await supabase.auth.getSession()
+    
+    if (!session?.access_token) {
+      throw new Error('No authentication token available')
+    }
+
+    return {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${session.access_token}`,
+      'Access-Control-Allow-Origin': '*',
+      'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
+      'Access-Control-Allow-Headers': 'Content-Type, Authorization'
+    }
+  }
+
   static async getSavedContent(): Promise<SavedContent[]> {
     // Simulate network delay
     await new Promise(resolve => setTimeout(resolve, 2500))
@@ -91,5 +112,30 @@ export class SavedContentService {
     
     const platforms = new Set(mockSavedContent.map(item => item.platform))
     return Array.from(platforms)
+  }
+
+  static async saveContent(content: SavedContent): Promise<boolean> {
+    try {
+      const headers = await this.getAuthHeaders()
+      const response = await fetch(`${this.API_BASE_URL}/api/content`, {
+        method: 'PUT',
+        headers,
+        credentials: 'include',
+        mode: 'cors',
+        body: JSON.stringify({
+          id: content.id,
+          isSaved: true
+        })
+      })
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`)
+      }
+
+      return true
+    } catch (error) {
+      console.error('Error saving content:', error)
+      return false
+    }
   }
 } 

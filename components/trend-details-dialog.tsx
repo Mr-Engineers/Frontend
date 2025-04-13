@@ -4,20 +4,14 @@ import { Badge } from "@/components/ui/badge"
 import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { TrendingUp, Clock, Info } from "lucide-react"
-import { TrendsService, TrendDetails } from "@/lib/services/trends-service"
+import { TrendsService, TrendDetails, Trend } from "@/lib/services/trends-service"
 import { useEffect, useState } from "react"
 import { Skeleton } from "@/components/ui/skeleton"
 
 interface TrendDetailsDialogProps {
   isOpen: boolean
   onClose: () => void
-  trend: {
-    tag: string
-    volume: number
-    growth: number
-    relevance: number
-    platform: string
-  } | null
+  trend: Trend
 }
 
 export function TrendDetailsDialog({ isOpen, onClose, trend }: TrendDetailsDialogProps) {
@@ -28,7 +22,7 @@ export function TrendDetailsDialog({ isOpen, onClose, trend }: TrendDetailsDialo
     if (isOpen && trend) {
       setIsLoading(true)
       TrendsService.getTrendDetails(
-        trend.platform.toLowerCase() as "x" | "tiktok" | "youtube",
+        trend.platform?.toLowerCase() as "x" | "tiktok" | "youtube",
         trend.tag
       ).then((details) => {
         setTrendDetails(details)
