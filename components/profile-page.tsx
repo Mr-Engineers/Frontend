@@ -63,9 +63,16 @@ export function ProfilePage() {
     setEditingSection(section)
   }
 
-  const handleCancel = () => {
+  const handleCancel = async () => {
     setEditingSection(null)
-    loadProfileData() // Reload original data
+    // Don't set isLoading to true here, just reload the data
+    try {
+      const data = await ProfileService.getProfileData()
+      setFormData(data)
+    } catch (error) {
+      console.error("Failed to reload profile data:", error)
+      toast.error("Failed to reload profile data")
+    }
   }
 
   if (isLoading || !formData) {

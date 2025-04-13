@@ -77,65 +77,13 @@ export function AccountSection({ formData, onChange, isEditing, onEdit, onCancel
                     type="email"
                     value={formData.email}
                     onChange={(e) => onChange({ email: e.target.value })}
-                    disabled={!isEditing}
+                    disabled={true}
                     className="pl-10"
                   />
                   <Mail className="absolute left-3 top-2.5 h-5 w-5 text-gray-400" />
                 </div>
               </div>
             </div>
-
-            {isEditing && (
-              <div className="pt-4 border-t">
-                <h3 className="text-sm font-medium mb-4">Change Password</h3>
-                <div className="space-y-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="currentPassword">Current Password</Label>
-                    <div className="relative">
-                      <Input
-                        id="currentPassword"
-                        name="currentPassword"
-                        type="password"
-                        value={formData.currentPassword}
-                        onChange={(e) => onChange({ currentPassword: e.target.value })}
-                        className="pl-10"
-                      />
-                      <Lock className="absolute left-3 top-2.5 h-5 w-5 text-gray-400" />
-                    </div>
-                  </div>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div className="space-y-2">
-                      <Label htmlFor="newPassword">New Password</Label>
-                      <div className="relative">
-                        <Input
-                          id="newPassword"
-                          name="newPassword"
-                          type="password"
-                          value={formData.newPassword}
-                          onChange={(e) => onChange({ newPassword: e.target.value })}
-                          className="pl-10"
-                        />
-                        <Lock className="absolute left-3 top-2.5 h-5 w-5 text-gray-400" />
-                      </div>
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="confirmPassword">Confirm Password</Label>
-                      <div className="relative">
-                        <Input
-                          id="confirmPassword"
-                          name="confirmPassword"
-                          type="password"
-                          value={formData.confirmPassword}
-                          onChange={(e) => onChange({ confirmPassword: e.target.value })}
-                          className="pl-10"
-                        />
-                        <Lock className="absolute left-3 top-2.5 h-5 w-5 text-gray-400" />
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            )}
           </div>
         </CardContent>
         {isEditing && (
