@@ -85,9 +85,36 @@ export class SavedContentService {
   }
 
   static async getSavedContent(): Promise<SavedContent[]> {
-    // Simulate network delay
-    await new Promise(resolve => setTimeout(resolve, 2500))
-    return mockSavedContent
+    try {
+      const headers = await this.getAuthHeaders()
+      const response = await fetch(`${this.API_BASE_URL}/api/content`, {
+        method: 'GET',
+        headers,
+        credentials: 'include',
+        mode: 'cors'
+      })
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`)
+      }
+
+      const data = await response.json()
+      
+      // Map the API response to our SavedContent interface
+      return data.Content.map((item: any) => ({
+        id: item.id,
+        title: item.title,
+        description: item.description,
+        platform: item.platform.toLowerCase() as "x" | "tiktok" | "youtube",
+        contentType: item.type.toLowerCase() as "video" | "image" | "article",
+        relevance: Math.floor(item.relevance * 100),
+        hashtags: item.tags.map((tag: any) => tag.name),
+        isSaved: item.is_saved
+      }))
+    } catch (error) {
+      console.error('Error fetching saved content:', error)
+      return []
+    }
   }
 
   static async toggleSave(id: string): Promise<SavedContent[]> {
@@ -124,7 +151,7 @@ export class SavedContentService {
         mode: 'cors',
         body: JSON.stringify({
           id: content.id,
-          isSaved: true
+          is_saved: content.isSaved
         })
       })
 

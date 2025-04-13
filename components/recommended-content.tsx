@@ -67,14 +67,16 @@ export function RecommendedContent({ timePeriod }: RecommendedContentProps) {
 
   const handleSave = async (content: ContentRecommendation) => {
     try {
-      const success = await SavedContentService.saveContent(content)
+      const updatedContent = { ...content, isSaved: !content.isSaved }
+      console.log(updatedContent)
+      const success = await SavedContentService.saveContent(updatedContent)
       if (success) {
         setRecommendations(prev => 
           prev.map(item => 
-            item.id === content.id ? { ...item, isSaved: true } : item
+            item.id === content.id ? updatedContent : item
           )
         )
-        toast.success("Content saved successfully")
+        toast.success(content.isSaved ? "Content unsaved" : "Content saved successfully")
       } else {
         toast.error("Failed to save content")
       }

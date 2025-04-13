@@ -24,6 +24,7 @@ interface ContentItem {
 export function SavedContent() {
   const [content, setContent] = useState<ContentItem[]>([])
   const [isLoading, setIsLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
     loadContent()
@@ -32,10 +33,12 @@ export function SavedContent() {
   const loadContent = async () => {
     try {
       setIsLoading(true)
+      setError(null)
       const savedContent = await SavedContentService.getSavedContent()
       setContent(savedContent)
     } catch (error) {
       console.error("Failed to load saved content:", error)
+      setError("Failed to load saved content. Please try again later.")
     } finally {
       setIsLoading(false)
     }
@@ -43,8 +46,19 @@ export function SavedContent() {
 
   const toggleSave = async (id: string) => {
     try {
-      const updatedContent = await SavedContentService.toggleSave(id)
-      setContent(updatedContent)
+      const contentToUpdate = content.find(item => item.id === id)
+      if (!contentToUpdate) return
+
+      const updatedContent = { ...contentToUpdate, isSaved: !contentToUpdate.isSaved }
+      const success = await SavedContentService.saveContent(updatedContent)
+      
+      if (success) {
+        setContent(prev => 
+          prev.map(item => 
+            item.id === id ? updatedContent : item
+          )
+        )
+      }
     } catch (error) {
       console.error("Failed to toggle save:", error)
     }
@@ -78,6 +92,34 @@ export function SavedContent() {
 
   if (isLoading) {
     return <SavedSkeleton />
+  }
+
+  if (error) {
+    return (
+      <div className="flex flex-col gap-4 p-4 lg:p-6 w-full">
+        <DashboardHeader
+          title="Saved Content"
+          description="Your collection of saved content pieces"
+        />
+        <div className="text-center text-red-500">
+          {error}
+        </div>
+      </div>
+    )
+  }
+
+  if (content.length === 0) {
+    return (
+      <div className="flex flex-col gap-4 p-4 lg:p-6 w-full">
+        <DashboardHeader
+          title="Saved Content"
+          description="Your collection of saved content pieces"
+        />
+        <div className="text-center text-gray-500">
+          No saved content yet. Save some content to see it here!
+        </div>
+      </div>
+    )
   }
 
   return (
